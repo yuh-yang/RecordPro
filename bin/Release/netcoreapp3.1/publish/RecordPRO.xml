@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>RecordPRO</name>
+    </assembly>
+    <members>
+        <member name="M:RecordPRO.Controllers.UsersController.Register(System.String,System.String)">
+            <summary>
+            用户注册，若成功返回用户信息携带token，若用户名重复，返回409
+            </summary>
+            <param name="username">用户名</param>
+            <param name="password">密码</param>
+            <returns></returns>
+        </member>
+        <member name="M:RecordPRO.Controllers.UsersController.Login(System.String,System.String)">
+            <summary>
+            用户登录，成功返回用户信息，用户不存在返回404.密码错误返回417
+            </summary>
+            <param name="username"></param>
+            <param name="password"></param>
+            <returns></returns>
+        </member>
+        <member name="P:RecordPRO.Models.User.id">
+            <summary>
+            ID主键
+            </summary>
+            
+        </member>
+        <member name="P:RecordPRO.Models.User.Name">
+            <summary>
+            用户名
+            </summary>
+            
+        </member>
+        <member name="P:RecordPRO.Models.User.Password">
+            <summary>
+            密码
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.User.Token">
+            <summary>
+            登陆凭证
+            </summary>
+        </member>
+    </members>
+</doc>
