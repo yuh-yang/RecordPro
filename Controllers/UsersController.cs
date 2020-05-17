@@ -59,7 +59,7 @@ namespace RecordPRO.Controllers
         }
 
         /// <summary>
-        /// 用户登录，成功返回用户信息，用户不存在返回404.密码错误返回417
+        /// 用户登录，成功返回用户信息，用户不存在返回404。密码错误返回417
         /// </summary>
         /// <param name="username"></param>
         /// <param name="password"></param>
