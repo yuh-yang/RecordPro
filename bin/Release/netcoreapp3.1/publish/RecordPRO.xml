@@ -4,6 +4,13 @@
         <name>RecordPRO</name>
     </assembly>
     <members>
+        <member name="M:RecordPRO.Controllers.UserBillsController.AddUserBill(RecordPRO.DTO.UserBillDTO)">
+            <summary>
+            提交记账
+            </summary>
+            <param name="userBill"></param>
+            <returns></returns>
+        </member>
         <member name="M:RecordPRO.Controllers.UsersController.Register(System.String,System.String)">
             <summary>
             用户注册，若成功返回用户信息携带token，若用户名重复，返回409
@@ -19,6 +26,36 @@
             <param name="username"></param>
             <param name="password"></param>
             <returns></returns>
+        </member>
+        <member name="P:RecordPRO.DTO.UserBillDTO.category">
+            <summary>
+            账单分类
+            </summary>
+        </member>
+        <member name="P:RecordPRO.DTO.UserBillDTO.type">
+            <summary>
+            支出类型，true表示指出，false表示收入
+            </summary>
+        </member>
+        <member name="P:RecordPRO.DTO.UserBillDTO.amount">
+            <summary>
+            金额
+            </summary>
+        </member>
+        <member name="P:RecordPRO.DTO.UserBillDTO.remark">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:RecordPRO.DTO.UserBillDTO.date">
+            <summary>
+            格式化日期
+            </summary>
+        </member>
+        <member name="P:RecordPRO.DTO.UserBillDTO.token">
+            <summary>
+            token
+            </summary>
         </member>
         <member name="P:RecordPRO.Models.User.id">
             <summary>
@@ -36,10 +73,47 @@
             <summary>
             密码
             </summary>
+            
         </member>
         <member name="P:RecordPRO.Models.User.Token">
             <summary>
             登陆凭证
+            </summary>
+            
+        </member>
+        <member name="P:RecordPRO.Models.UserBill.id">
+            <summary>
+            账单ID
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserBill.category">
+            <summary>
+            账单分类
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserBill.type">
+            <summary>
+            支出类型，true表示指出，false表示收入
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserBill.amount">
+            <summary>
+            金额
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserBill.remark">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserBill.date">
+            <summary>
+            格式化日期
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserBill.userid">
+            <summary>
+            用户ID
             </summary>
         </member>
     </members>

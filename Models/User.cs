@@ -20,14 +20,19 @@ namespace RecordPRO.Models
         /// 用户名
         /// </summary>
         /// 
+        [Column(TypeName = "varchar(200)")]
         public string Name { get; set; }
         /// <summary>
         /// 密码
         /// </summary>
+        /// 
+        [Column(TypeName = "varchar(200)")]
         public string Password { get; set; }
         /// <summary>
         /// 登陆凭证
         /// </summary>
+        /// 
+        [Column(TypeName = "varchar(200)")]
         public string Token { get; set; }
     }
 }

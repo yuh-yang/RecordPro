@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -15,6 +16,10 @@ using RecordPRO.Models;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.IO;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.AspNetCore.Http;
+using RecordPRO.Config;
+using RecordPRO.Utils;
 
 namespace RecordPRO
 {
@@ -35,6 +40,7 @@ namespace RecordPRO
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Record Pro API", Version = "v1" });
+                //c.OperationFilter<CustomHeaderSwaggerAttribute>();
                 // Set the comments path for the Swagger JSON and UI.
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
@@ -42,7 +48,8 @@ namespace RecordPRO
             });
             //指定使用云数据库
             services.AddDbContext<RecordPROContext>(opt =>
-                opt.UseSqlServer(Configuration.GetConnectionString("Default")));
+                opt.UseMySql(Configuration.GetConnectionString("MySql"), mySqlOptions => mySqlOptions.ServerVersion(new Version(5,7),ServerType.MySql)));
+            services.AddSingleton<IUtils, RequestVerification>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
