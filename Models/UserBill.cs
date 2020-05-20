@@ -35,7 +35,7 @@ namespace RecordPRO.Models
         /// <summary>
         /// 格式化日期
         /// </summary>
-        public string date { get; set; }
+        public DateTime datetime { get; set; }
         /// <summary>
         /// 用户ID
         /// </summary>

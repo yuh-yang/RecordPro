@@ -26,7 +26,7 @@ namespace RecordPRO.DTO
         /// <summary>
         /// 格式化日期
         /// </summary>
-        public string date { get; set; }
+        public DateTime datetime { get; set; }
         /// <summary>
         /// token
         /// </summary>

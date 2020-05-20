@@ -4,11 +4,35 @@
         <name>RecordPRO</name>
     </assembly>
     <members>
+        <member name="M:RecordPRO.Controllers.UserBillsController.GetUserBill(System.String,System.Int32)">
+            <summary>
+            按token获取用户账单
+            </summary>
+            <param name="token">token</param>
+            <param name="days">几天内的账单，-1表示全部账单</param>
+            <returns></returns>
+        </member>
+        <member name="M:RecordPRO.Controllers.UserBillsController.PutUserBill(System.Int32,System.String,RecordPRO.DTO.UserBillDTO)">
+            <summary>
+            按账单id修改账单，需要token
+            </summary>
+            <param name="id">账单id</param>
+            <param name="token">token</param>
+            <param name="userBill">修改后的账单内容</param>
+            <returns></returns>
+        </member>
         <member name="M:RecordPRO.Controllers.UserBillsController.AddUserBill(RecordPRO.DTO.UserBillDTO)">
             <summary>
             提交记账
             </summary>
             <param name="userBill"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RecordPRO.Controllers.UserBillsController.DeleteUserBill(System.Int32,System.String)">
+            <summary>
+            按id删除账单
+            </summary>
+            <param name="id">账单id</param>
             <returns></returns>
         </member>
         <member name="M:RecordPRO.Controllers.UsersController.Register(System.String,System.String)">
@@ -47,7 +71,7 @@
             备注
             </summary>
         </member>
-        <member name="P:RecordPRO.DTO.UserBillDTO.date">
+        <member name="P:RecordPRO.DTO.UserBillDTO.datetime">
             <summary>
             格式化日期
             </summary>
@@ -67,7 +91,6 @@
             <summary>
             用户名
             </summary>
-            
         </member>
         <member name="P:RecordPRO.Models.User.Password">
             <summary>
@@ -106,7 +129,7 @@
             备注
             </summary>
         </member>
-        <member name="P:RecordPRO.Models.UserBill.date">
+        <member name="P:RecordPRO.Models.UserBill.datetime">
             <summary>
             格式化日期
             </summary>

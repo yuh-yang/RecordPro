@@ -36,7 +36,7 @@ namespace RecordPRO.Utils
             }
 
             Dictionary<string, string> jsonDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-            return jsonDict["name"];
-                    }
+            return jsonDict["id"];
+        }
     }
 }

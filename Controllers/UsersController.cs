@@ -36,11 +36,20 @@ namespace RecordPRO.Controllers
                 return Conflict();
             }else
             {
+                //先存，拿到自增的id
+                User user = new User();
+                user.Name = username;
+                user.Password = password;
+                _context.Users.Add(user);
+                _context.SaveChanges();
+                var user_new = _context.Users.Single(u=>u.Name==username);
+                //将id写到JWT中，二次存储
                 var payload = new Dictionary<string, object>
                {
                     {"iss", "RecordProAPI" },
                     {"iat", DateTime.Now.ToString() },
-                    {"name", username }
+                    {"name", username },
+                    {"id", user_new.id}
                };
                 const string secret = "ezio0124";
                 IJwtAlgorithm algorithm = new HMACSHA256Algorithm(); // symmetric
@@ -48,11 +57,9 @@ namespace RecordPRO.Controllers
                 IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
                 IJwtEncoder encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
                 var token = encoder.Encode(payload, secret);
-                User user = new User();
-                user.Name = username;
-                user.Password = password;
-                user.Token = token;
-                _context.Users.Add(user);
+                //刷新token
+                user_new.Token = token;
+                _context.Update<User>(user_new);
                 _context.SaveChanges();
                 return CreatedAtAction("Register", new { id = user.id}, user);
             }

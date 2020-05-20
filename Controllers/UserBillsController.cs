@@ -24,57 +24,55 @@ namespace RecordPRO.Controllers
             _requestVerification = requestVerification;
         }
 
-        // GET: api/UserBills
+        /// <summary>
+        /// 按token获取用户账单
+        /// </summary>
+        /// <param name="token">token</param>
+        /// <param name="days">几天内的账单，-1表示全部账单</param>
+        /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserBill>>> GetUserBill()
+        public ActionResult<List<UserBill>> GetUserBill(string token, int days)
         {
-            return await _context.UserBill.ToListAsync();
+            var userid = _requestVerification.VerifyRequest(token);
+            if (userid is null)
+            {
+                return StatusCode(403);
+            }
+            if (days == -1)
+            {
+                return _context.UserBill.FromSqlInterpolated($"SELECT * FROM userbill WHERE userid = {userid}").ToList();
+            }
+            else
+            {
+                var requiredDateTime = DateTime.Now.Date.AddDays(-days);
+                return _context.UserBill.FromSqlInterpolated($"SELECT * FROM userbill WHERE datetime > {requiredDateTime} AND userid = {userid}").ToList();
+            }
         }
 
-        // GET: api/UserBills/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<UserBill>> GetUserBill(int id)
+        /// <summary>
+        /// 按账单id修改账单，需要token
+        /// </summary>
+        /// <param name="id">账单id</param>
+        /// <param name="token">token</param>
+        /// <param name="userBill">修改后的账单内容</param>
+        /// <returns></returns>
+        [HttpPut]
+        public IActionResult PutUserBill(int id, string token, UserBillDTO userBill)
         {
-            var userBill = await _context.UserBill.FindAsync(id);
-
-            if (userBill == null)
+            var userid = _requestVerification.VerifyRequest(token);
+            if (userid is null)
             {
-                return NotFound();
+                return StatusCode(403);
             }
-
-            return userBill;
-        }
-
-        // PUT: api/UserBills/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUserBill(int id, UserBill userBill)
-        {
-            if (id != userBill.id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(userBill).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserBillExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            var bill = _context.UserBill.Single(u => u.id == id);
+            bill.category = userBill.category;
+            bill.amount = userBill.amount;
+            bill.datetime = userBill.datetime;
+            bill.remark = userBill.remark;
+            bill.type = userBill.type;
+            _context.Update<UserBill>(bill);
+            _context.SaveChanges();
+            return StatusCode(201);
         }
 
         /// <summary>
@@ -86,46 +84,47 @@ namespace RecordPRO.Controllers
         public IActionResult AddUserBill(UserBillDTO userBill)
         {
             //鉴权
-            string token;
-            try
-            {
-                token = userBill.token;
-            }
-            catch (Exception)
-            {
-                token = null;
-            }
-            var username = _requestVerification.VerifyRequest(token);
-            if(username is null)
+            var userid = _requestVerification.VerifyRequest(userBill.token);
+            if(userid is null)
             {
                 return StatusCode(403);
             }
             //存储
-            var user = _context.Users.Single(u => u.Name == username);
             UserBill userBill1 = new UserBill();
             userBill1.amount = userBill.amount;
             userBill1.category = userBill.category;
-            userBill1.date = userBill.date;
+            userBill1.datetime = userBill.datetime;
             userBill1.type = userBill.type;
             userBill1.remark = userBill.remark;
-            userBill1.userid = user.id;
+            userBill1.userid = int.Parse(userid);
             _context.UserBill.Add(userBill1);
+            _context.SaveChanges();
             return StatusCode(201);
         }
-        // DELETE: api/UserBills/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<UserBill>> DeleteUserBill(int id)
+
+        /// <summary>
+        /// 按id删除账单
+        /// </summary>
+        /// <param name="id">账单id</param>
+        /// <returns></returns>
+        [HttpDelete]
+        public IActionResult DeleteUserBill(int id, string token) 
         {
-            var userBill = await _context.UserBill.FindAsync(id);
+            var userid = _requestVerification.VerifyRequest(token);
+            if(userid is null)
+            {
+                return StatusCode(403);
+            }
+            var userBill = _context.UserBill.Find(id);
             if (userBill == null)
             {
                 return NotFound();
             }
 
             _context.UserBill.Remove(userBill);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
-            return userBill;
+            return StatusCode(201);
         }
 
         private bool UserBillExists(int id)

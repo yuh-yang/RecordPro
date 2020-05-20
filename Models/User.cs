@@ -19,7 +19,6 @@ namespace RecordPRO.Models
         /// <summary>
         /// 用户名
         /// </summary>
-        /// 
         [Column(TypeName = "varchar(200)")]
         public string Name { get; set; }
         /// <summary>
