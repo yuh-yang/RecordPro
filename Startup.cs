@@ -48,7 +48,7 @@ namespace RecordPRO
             });
             //指定使用云数据库
             services.AddDbContext<RecordPROContext>(opt =>
-                opt.UseMySql(Configuration.GetConnectionString("MySql"), mySqlOptions => mySqlOptions.ServerVersion(new Version(5,7),ServerType.MySql)));
+                opt.UseMySql("Server=yuhyeung.mysql.rds.aliyuncs.com;User=yuh;Password=ezio0124;Database=RecordPro", mySqlOptions => mySqlOptions.ServerVersion(new Version(5,7),ServerType.MySql)));
             services.AddSingleton<IUtils, RequestVerification>();
         }
 
