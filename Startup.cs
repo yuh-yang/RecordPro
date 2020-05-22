@@ -20,6 +20,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Http;
 using RecordPRO.Config;
 using RecordPRO.Utils;
+using System.Text;
+using RecordPRO.Services;
 
 namespace RecordPRO
 {
@@ -49,7 +51,8 @@ namespace RecordPRO
             //指定使用云数据库
             services.AddDbContext<RecordPROContext>(opt =>
                 opt.UseMySql("Server=yuhyeung.mysql.rds.aliyuncs.com;User=yuh;Password=ezio0124;Database=RecordPro", mySqlOptions => mySqlOptions.ServerVersion(new Version(5,7),ServerType.MySql)));
-            services.AddSingleton<IUtils, RequestVerification>();
+            services.AddSingleton<IUtils, UtilsImpl>();
+            services.AddSingleton<IServices, ServicesImpl>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -80,6 +83,8 @@ namespace RecordPRO
             {
                 endpoints.MapControllers();
             });
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
     }
 }

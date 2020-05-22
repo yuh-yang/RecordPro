@@ -35,6 +35,13 @@
             <param name="id">账单id</param>
             <returns></returns>
         </member>
+        <member name="M:RecordPRO.Controllers.UserNotesController.PostUserNote(RecordPRO.DTO.UserNoteDTO)">
+            <summary>
+            增加一条小记，需要token
+            </summary>
+            <param name="userNote"></param>
+            <returns></returns>
+        </member>
         <member name="M:RecordPRO.Controllers.UsersController.Register(System.String,System.String)">
             <summary>
             用户注册，若成功返回用户信息携带token，若用户名重复，返回409
@@ -50,6 +57,21 @@
             <param name="username"></param>
             <param name="password"></param>
             <returns></returns>
+        </member>
+        <member name="P:RecordPRO.DTO.UserArticleDTO.title">
+            <summary>
+            标题
+            </summary>
+        </member>
+        <member name="P:RecordPRO.DTO.UserArticleDTO.content">
+            <summary>
+            文本内容
+            </summary>
+        </member>
+        <member name="P:RecordPRO.DTO.UserArticleDTO.wordcount">
+            <summary>
+            字数
+            </summary>
         </member>
         <member name="P:RecordPRO.DTO.UserBillDTO.category">
             <summary>
@@ -81,6 +103,26 @@
             token
             </summary>
         </member>
+        <member name="P:RecordPRO.DTO.UserNoteDTO.content">
+            <summary>
+            文本内容
+            </summary>
+        </member>
+        <member name="P:RecordPRO.DTO.UserNoteDTO.wordcount">
+            <summary>
+            字数
+            </summary>
+        </member>
+        <member name="P:RecordPRO.DTO.UserNoteDTO.dateTime">
+            <summary>
+            时间
+            </summary>
+        </member>
+        <member name="P:RecordPRO.DTO.UserNoteDTO.token">
+            <summary>
+            token
+            </summary>
+        </member>
         <member name="P:RecordPRO.Models.User.id">
             <summary>
             ID主键
@@ -103,6 +145,36 @@
             登陆凭证
             </summary>
             
+        </member>
+        <member name="P:RecordPRO.Models.UserArticle.id">
+            <summary>
+            文本id
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserArticle.title">
+            <summary>
+            标题
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserArticle.content">
+            <summary>
+            文本内容
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserArticle.wordcount">
+            <summary>
+            字数
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserArticle.tags">
+            <summary>
+            文本分类标签
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserArticle.userid">
+            <summary>
+            用户id
+            </summary>
         </member>
         <member name="P:RecordPRO.Models.UserBill.id">
             <summary>
@@ -137,6 +209,41 @@
         <member name="P:RecordPRO.Models.UserBill.userid">
             <summary>
             用户ID
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserNote.id">
+            <summary>
+            文本id
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserNote.content">
+            <summary>
+            文本内容
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserNote.wordcount">
+            <summary>
+            字数
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserNote.sentiment">
+            <summary>
+            情感极性，0：负向；1：中性；2：正向
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserNote.tags">
+            <summary>
+            文本关注点标签
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserNote.dateTime">
+            <summary>
+            时间
+            </summary>
+        </member>
+        <member name="P:RecordPRO.Models.UserNote.userid">
+            <summary>
+            用户id
             </summary>
         </member>
     </members>

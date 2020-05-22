@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace RecordPRO.Utils
 {
-    public class RequestVerification : IUtils
+    public class UtilsImpl : IUtils
     {
 
         public string VerifyRequest(string token)
@@ -37,6 +37,19 @@ namespace RecordPRO.Utils
 
             Dictionary<string, string> jsonDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
             return jsonDict["id"];
+        }
+
+        public Baidu.Aip.Nlp.Nlp GetBaiduClient()
+        {
+            // 设置APPID/AK/SK
+            var APP_ID = "20015213";
+            var API_KEY = "gWdrA6pI4XlGZ1wvDLZtmo8l";
+            var SECRET_KEY = "h3ehwAL57zAV6egQGYfr6qLG6LVdgvRa";
+
+            var client = new Baidu.Aip.Nlp.Nlp(API_KEY, SECRET_KEY);
+            client.Timeout = 60000;  // 修改超时时间
+
+            return client;
         }
     }
 }

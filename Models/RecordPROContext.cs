@@ -13,15 +13,16 @@ namespace RecordPRO.Models
     : base(options)
         {
         }
-
-        public DbSet<User> Users { get; set; }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().ToTable("User");
             modelBuilder.Entity<UserBill>().ToTable("UserBill");
+            modelBuilder.Entity<UserNote>().ToTable("UserNote");
         }
+        public DbSet<User> Users { get; set; }
 
         public DbSet<RecordPRO.Models.UserBill> UserBill { get; set; }
+
+        public DbSet<RecordPRO.Models.UserNote> UserNote { get; set; }
     }
 }

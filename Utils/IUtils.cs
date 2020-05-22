@@ -9,6 +9,6 @@ namespace RecordPRO.Utils
     public interface IUtils
     {
         public string VerifyRequest(string token);
-
+        public Baidu.Aip.Nlp.Nlp GetBaiduClient();
     }
 }
