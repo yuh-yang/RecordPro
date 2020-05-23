@@ -106,6 +106,7 @@ namespace RecordPRO.Controllers
         /// 按id删除账单
         /// </summary>
         /// <param name="id">账单id</param>
+        /// <param name="token"></param>
         /// <returns></returns>
         [HttpDelete]
         public IActionResult DeleteUserBill(int id, string token) 

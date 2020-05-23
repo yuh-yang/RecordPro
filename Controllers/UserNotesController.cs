@@ -17,67 +17,73 @@ namespace RecordPRO.Controllers
     public class UserNotesController : ControllerBase
     {
         private readonly RecordPROContext _context;
-        private readonly IUtils Utils;
+        private readonly IUtils _utils;
         private readonly IServices _services;
 
         public UserNotesController(RecordPROContext context, IUtils requestVerification, IServices services)
         {
             _context = context;
-            Utils = requestVerification;
+            _utils = requestVerification;
             _services = services;
         }
 
-        // GET: api/UserNotes
+        /// <summary>
+        /// 获取某用户的小记
+        /// </summary>
+        /// <param name="token">token</param>
+        /// <param name="days">几天内的小记，-1表示全部小记</param>
+        /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserNote>>> GetUserNote()
+        public ActionResult<IEnumerable<UserNote>> GetUserNote(string token, int days)
         {
-            return await _context.UserNote.ToListAsync();
+            var userid = _utils.VerifyRequest(token);
+            if (userid is null)
+            {
+                return StatusCode(403);
+            }
+            if (days == -1)
+            {
+                return _context.UserNote.FromSqlInterpolated($"SELECT * FROM usernote WHERE userid={userid}").ToList();
+            }
+            else
+            {
+                var requiredDateTime = DateTime.Now.Date.AddDays(-days);
+                return _context.UserNote.FromSqlInterpolated($"SELECT * FROM usernote WHERE datetime > {requiredDateTime} AND userid = {userid}").ToList();
+            }
         }
 
-        // GET: api/UserNotes/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<UserNote>> GetUserNote(int id)
+        /// <summary>
+        /// 按id更新一条小记
+        /// </summary>
+        /// <param name="id">小记id</param>
+        /// <param name="userNote">更新body</param>
+        /// <param name="token">token</param>
+        /// <returns></returns>
+        [HttpPut]
+        public IActionResult PutUserNote(int id, UserNoteDTO userNote, string token)
         {
-            var userNote = await _context.UserNote.FindAsync(id);
-
-            if (userNote == null)
+            var userid = _utils.VerifyRequest(token);
+            if (userid is null)
             {
-                return NotFound();
+                return StatusCode(403);
             }
-
-            return userNote;
-        }
-
-        // PUT: api/UserNotes/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUserNote(int id, UserNote userNote)
-        {
-            if (id != userNote.id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(userNote).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserNoteExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            var note = _context.UserNote.Single(u => u.id == id);
+            //调用百度API进行自然语言处理
+            var client = _utils.GetBaiduClient();
+            //情感分析
+            var sentiment_result = client.SentimentClassify(userNote.content);
+            //关键词提取
+            var keywords = _services.ExtractKeywords(userNote.content);
+            //更新
+            note.userid = int.Parse(userid);
+            note.content = userNote.content;
+            note.wordcount = userNote.wordcount;
+            note.dateTime = userNote.dateTime;
+            note.sentiment = sentiment_result["items"][0].Value<int>("sentiment");
+            note.tags = keywords;
+            _context.Update<UserNote>(note);
+            _context.SaveChanges();
+            return StatusCode(200);
         }
 
         /// <summary>
@@ -88,13 +94,13 @@ namespace RecordPRO.Controllers
         [HttpPost]
         public IActionResult PostUserNote(UserNoteDTO userNote)
         {
-            var userid = Utils.VerifyRequest(userNote.token);
+            var userid = _utils.VerifyRequest(userNote.token);
             if (userid is null)
             {
                 return StatusCode(403);
             }
             //调用百度API进行自然语言处理
-            var client = Utils.GetBaiduClient();
+            var client = _utils.GetBaiduClient();
             //情感分析
             var sentiment_result = client.SentimentClassify(userNote.content);
             //关键词提取
@@ -113,20 +119,29 @@ namespace RecordPRO.Controllers
             return StatusCode(201);
         }
 
-        // DELETE: api/UserNotes/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<UserNote>> DeleteUserNote(int id)
+        /// <summary>
+        /// 删除一条小记
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public IActionResult DeleteUserNote(int id, string token)
         {
-            var userNote = await _context.UserNote.FindAsync(id);
+            var userid = _utils.VerifyRequest(token);
+            if (userid is null)
+            {
+                return StatusCode(403);
+            }
+            var userNote = _context.UserNote.Find(id);
             if (userNote == null)
             {
                 return NotFound();
             }
 
             _context.UserNote.Remove(userNote);
-            await _context.SaveChangesAsync();
-
-            return userNote;
+            _context.SaveChanges();
+            return StatusCode(200);
         }
 
         private bool UserNoteExists(int id)
