@@ -24,5 +24,7 @@ namespace RecordPRO.Models
         public DbSet<RecordPRO.Models.UserBill> UserBill { get; set; }
 
         public DbSet<RecordPRO.Models.UserNote> UserNote { get; set; }
+
+        public DbSet<RecordPRO.Models.UserFace> UserFace { get; set; }
     }
 }

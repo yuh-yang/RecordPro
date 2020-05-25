@@ -8,6 +8,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using static RecordPRO.Utils.UtilsImpl;
+using System.Drawing;
+using System.Drawing.Imaging;
+using RecordPRO.Utils;
 
 namespace RecordPRO.Services
 {
@@ -81,5 +85,39 @@ namespace RecordPRO.Services
             }
             return keywords;
         }
+
+        public JObject DetectFace(string filepath)
+        {
+            //参数字典
+            Dictionary<string, object> verifyPostParameters = new Dictionary<string, object>();
+            verifyPostParameters.Add("api_key", "ZHAtWOW-0Uf47oxXO2DgDnLVowZVWJBY");
+            verifyPostParameters.Add("api_secret", "G8gkp1qd3tJzSu8da4IkO-LA5N3rzlGT");
+            verifyPostParameters.Add("return_landmark", "0");
+            verifyPostParameters.Add("return_attributes", "gender,age,smiling,emotion,beauty,skinstatus");
+            Bitmap bmp = new Bitmap(filepath); // 图片地址
+            byte[] fileImage;
+            using (Stream stream1 = new MemoryStream())
+            {
+                bmp.Save(stream1, ImageFormat.Jpeg);
+                byte[] arr = new byte[stream1.Length];
+                stream1.Position = 0;
+                stream1.Read(arr, 0, (int)stream1.Length);
+                stream1.Close();
+                fileImage = arr;
+            }
+            //添加图片参数
+            verifyPostParameters.Add("image_file", new HttpHelper4MultipartForm.FileParameter(fileImage, "1.jpg", "application/octet-stream"));
+            HttpWebResponse verifyResponse = HttpHelper4MultipartForm.MultipartFormDataPost("https://api-cn.faceplusplus.com/facepp/v3/detect", "", verifyPostParameters);
+            //处理响应为json格式
+            string htmlStr = String.Empty;
+            Stream responseStream = verifyResponse.GetResponseStream();
+            using (StreamReader reader = new StreamReader(responseStream, Encoding.GetEncoding("UTF-8")))
+            {
+                htmlStr = reader.ReadToEnd();
+            }
+            responseStream.Close();
+            return JObject.Parse(htmlStr);
+        }
     }
+    
 }
