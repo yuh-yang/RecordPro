@@ -34,7 +34,7 @@ namespace RecordPRO.Controllers
         /// <param name="days">几天内的小记，-1表示全部小记</param>
         /// <returns></returns>
         [HttpGet]
-        public ActionResult<IEnumerable<UserNote>> GetUserNote(string token, int days)
+        public ActionResult<List<UserNote>> GetUserNote(string token, int days)
         {
             var userid = _utils.VerifyRequest(token);
             if (userid is null)

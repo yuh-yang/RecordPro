@@ -40,6 +40,15 @@ namespace RecordPRO.Models
         /// </summary>
         public string beauty { get; set; }
         /// <summary>
+        /// 皮肤状态
+        /// 健康/色斑/青春痘/黑眼圈
+        /// </summary>
+        public string skinstatus { get; set; }
+        /// <summary>
+        /// 日期时间
+        /// </summary>
+        public DateTime datetime { get; set; }
+        /// <summary>
         /// Face++提供的人脸标识号
         /// </summary>
         public string facetoken { get; set; }

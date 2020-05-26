@@ -27,68 +27,42 @@ namespace RecordPRO.Controllers
             _services = services;
         }
 
-
-        // GET: api/UserFaces
+        /// <summary>
+        /// 获取用户照片，days=-1表示全部照片
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="days">几天内的照片</param>
+        /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserFace>>> GetUserFace()
+        public ActionResult<List<UserFace>> GetUserFace(string token, int days)
         {
-            return await _context.UserFace.ToListAsync();
+            var userid = _utils.VerifyRequest(token);
+            if (userid is null)
+            {
+                return StatusCode(403);
+            }
+            if (days == -1)
+            {
+                return _context.UserFace.FromSqlInterpolated($"SELECT * FROM userface WHERE userid = {userid}").ToList();
+            }
+            else
+            {
+                var requiredDateTime = DateTime.Now.Date.AddDays(-days);
+                return _context.UserFace.FromSqlInterpolated($"SELECT * FROM userface WHERE datetime > {requiredDateTime} AND userid = {userid}").ToList();
+            }
+
         }
 
-        // GET: api/UserFaces/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<UserFace>> GetUserFace(int id)
-        {
-            var userFace = await _context.UserFace.FindAsync(id);
-
-            if (userFace == null)
-            {
-                return NotFound();
-            }
-
-            return userFace;
-        }
-
-        // PUT: api/UserFaces/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUserFace(int id, UserFace userFace)
-        {
-            if (id != userFace.id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(userFace).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserFaceExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
 
         /// <summary>
         /// 上传一张图片，注意请求形式为 multipart/form-data
         /// </summary>
         /// <param name="file">人脸图片，小于1MB</param>
         /// <param name="token"></param>
+        /// <param name="datetime">日期时间</param>
         /// <returns></returns>
         [HttpPost]
-        public IActionResult PostUserFace(IFormFile file, string token)
+        public IActionResult PostUserFace(IFormFile file, string token, DateTime datetime)
         {
             var userid = _utils.VerifyRequest(token);
             if (userid is null)
@@ -135,6 +109,12 @@ namespace RecordPRO.Controllers
             var Emotion1 = EmotionDict.OrderByDescending(x => x.Value).First().Key +":"+ EmotionDict.OrderByDescending(x => x.Value).First().Value;
             var Emotion2 = EmotionDict.OrderByDescending(x => x.Value).Skip(1).First().Key + ":" + EmotionDict.OrderByDescending(x => x.Value).Skip(1).First().Value;
             emotion = Emotion1 + "/" + Emotion2;
+            //组合皮肤状态
+            var heath = data["attributes"]["skinstatus"].Value<string>("health");
+            var stain = data["attributes"]["skinstatus"].Value<string>("stain");
+            var acne = data["attributes"]["skinstatus"].Value<string>("acne");
+            var dark_circle = data["attributes"]["skinstatus"].Value<string>("dark_circle");
+            var skinstatus = heath + "/" + stain + "/" + acne + "/" + dark_circle;
             //存储
             var face = new UserFace();
             face.age = data["attributes"]["age"].Value<int>("value");
@@ -144,6 +124,9 @@ namespace RecordPRO.Controllers
             face.filepath = filePath;
             face.beauty = beauty;
             face.facetoken = data.Value<string>("face_token");
+            face.skinstatus = skinstatus;
+            face.datetime = datetime;
+            face.userid = int.Parse(userid);
             _context.UserFace.Add(face);
             _context.SaveChanges();
 
@@ -151,10 +134,22 @@ namespace RecordPRO.Controllers
 
         }
 
-        // DELETE: api/UserFaces/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<UserFace>> DeleteUserFace(int id)
+        /// <summary>
+        /// 按照片id删除一张照片
+        /// </summary>
+        /// <param name="id">照片id</param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<ActionResult<UserFace>> DeleteUserFace(int id, string token)
         {
+            //鉴权
+            var userid = _utils.VerifyRequest(token);
+            if (userid is null)
+            {
+                return StatusCode(403);
+            }
+            //删除
             var userFace = await _context.UserFace.FindAsync(id);
             if (userFace == null)
             {
