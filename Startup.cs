@@ -68,10 +68,14 @@ namespace RecordPRO
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
 
-            if (env.IsDevelopment())
+            //正式上线时注释掉下面这行
+            app.UseDeveloperExceptionPage();
+
+            //正式上线时取消以下多行注释
+/*            if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-            }
+            }*/
 
             //app.UseHttpsRedirection();
 
