@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using RecordPRO.DTO;
 using RecordPRO.Models;
 using RecordPRO.Utils;
@@ -17,11 +18,11 @@ namespace RecordPRO.Controllers
     public class UserBillsController : ControllerBase
     {
         private readonly RecordPROContext _context;
-        private readonly IUtils _requestVerification;
+        private readonly IUtils _utils;
         public UserBillsController(RecordPROContext context, IUtils requestVerification)
         {
             _context = context;
-            _requestVerification = requestVerification;
+            _utils = requestVerification;
         }
 
         /// <summary>
@@ -33,7 +34,7 @@ namespace RecordPRO.Controllers
         [HttpGet]
         public ActionResult<List<UserBill>> GetUserBill(string token, int days)
         {
-            var userid = _requestVerification.VerifyRequest(token);
+            var userid = _utils.VerifyRequest(token);
             if (userid is null)
             {
                 return StatusCode(403);
@@ -59,7 +60,7 @@ namespace RecordPRO.Controllers
         [HttpPut]
         public IActionResult PutUserBill(int id, string token, UserBillDTO userBill)
         {
-            var userid = _requestVerification.VerifyRequest(token);
+            var userid = _utils.VerifyRequest(token);
             if (userid is null)
             {
                 return StatusCode(403);
@@ -84,7 +85,7 @@ namespace RecordPRO.Controllers
         public IActionResult AddUserBill(UserBillDTO userBill)
         {
             //鉴权
-            var userid = _requestVerification.VerifyRequest(userBill.token);
+            var userid = _utils.VerifyRequest(userBill.token);
             if(userid is null)
             {
                 return StatusCode(403);
@@ -111,7 +112,7 @@ namespace RecordPRO.Controllers
         [HttpDelete]
         public IActionResult DeleteUserBill(int id, string token) 
         {
-            var userid = _requestVerification.VerifyRequest(token);
+            var userid = _utils.VerifyRequest(token);
             if(userid is null)
             {
                 return StatusCode(403);
@@ -126,6 +127,117 @@ namespace RecordPRO.Controllers
             _context.SaveChanges();
 
             return StatusCode(201);
+        }
+
+
+        /// <summary>
+        /// 用户群体统计数据
+        /// </summary>
+        /// <returns>平均收支/收支中位数/收支超越比例/投资收入超越比例/工资收入超越比例</returns>
+        /// <param name="token"></param>
+        /// <param name="period">统计周期，week或month</param>
+        [HttpGet("statistics")]
+        public ActionResult<BillStatisticsDTO> Analyze(string token, string period)
+        {
+            //鉴权
+            var userid = _utils.VerifyRequest(token);
+            if (userid is null)
+            {
+                return StatusCode(403);
+            }
+            //计算时间周期
+            DateTime TimePeriod;
+            if ("month".Equals(period))
+            {
+                TimePeriod = DateTime.Now.AddDays(-30);
+            }
+            else
+            {
+                TimePeriod = DateTime.Now.AddDays(-7);
+            }
+            //收支均值与用户数
+            var income_avg = _context.UserBill
+                .Where(b=> b.datetime>TimePeriod && b.type==false)
+                .Average(b=>b.amount);
+            var expense_avg = _context.UserBill
+                .Where(b => b.datetime > TimePeriod && b.type == true)
+                .Average(b => b.amount);
+            var user_count = _context.UserBill
+                .Select(b=>b.userid==int.Parse(userid))
+                .Count();
+            //用户收支List与中位数
+            float[] income_list = _context.UserBill.Where(b => b.type == false && b.datetime > TimePeriod).Select(p => p.amount).ToArray();
+            float[] expense_list = _context.UserBill.Where(b => b.type == true && b.datetime > TimePeriod).Select(p => p.amount).ToArray();
+            float income_median = _utils.Median(income_list);
+            float expense_median = _utils.Median(expense_list);
+            //各用户收入
+            var users_income = _context.UserBill
+                .Where(b=>b.datetime > TimePeriod && b.type == false)
+                .GroupBy(b=>b.userid)
+                .Select(g=>new { Userid=g.Key, Income=g.Sum(t=>t.amount)})
+                .ToDictionary(g=>g.Userid,g=>g.Income);
+            //收入超过多少人
+            //找到排在该用户前面的用户数;
+            int i = 0, UseridInIncomeDict;
+            do
+            {
+                UseridInIncomeDict = users_income.Keys.ElementAt(i);
+                i++;
+            } while (UseridInIncomeDict != int.Parse(userid));
+            float UserCount = _context.Users.Count();
+            var  income_ratio = (float)Math.Round(i / UserCount, 3);
+
+            //各用户支出
+            var users_expense = _context.UserBill
+                .Where(b => b.datetime > TimePeriod && b.type == true)
+                .GroupBy(b => b.userid)
+                .Select(g => new { Userid = g.Key, Expense = g.Sum(t => t.amount) })
+                .ToDictionary(g => g.Userid, g => g.Expense);
+            //支出超过多少人
+            //找到排在该用户前面的用户数
+            int j = 0, UseridInExpenseDict;
+            do
+            {
+                UseridInExpenseDict = users_income.Keys.ElementAt(j);
+                j++;
+            } while (UseridInExpenseDict != int.Parse(userid));
+            var expense_ratio = (float)Math.Round(j / UserCount, 3);
+
+            //各用户投资收入
+            var users_invest_income = _context.UserBill
+                .Where(b => b.datetime > TimePeriod && b.type == false && b.category=="investment")
+                .GroupBy(b => b.userid)
+                .Select(g => new { Userid = g.Key, Income = g.Sum(t => t.amount) })
+                .ToDictionary(g => g.Userid, g => g.Income);
+            //投资收入超过多少人
+            //找到排在该用户前面的用户数;
+            int m = 0, UseridInInvestIncomeDict;
+            do
+            {
+                UseridInInvestIncomeDict = users_income.Keys.ElementAt(m);
+                m++;
+            } while (UseridInInvestIncomeDict != int.Parse(userid));
+            var invest_income_ratio = (float)Math.Round(m / UserCount, 3);
+
+            //各用户工资收入
+            var users_salary_income = _context.UserBill
+            .Where(b => b.datetime > TimePeriod && b.type == false && b.category == "salaries")
+            .GroupBy(b => b.userid)
+            .Select(g => new { Userid = g.Key, Income = g.Sum(t => t.amount) })
+            .ToDictionary(g => g.Userid, g => g.Income);
+            //投资收入超过多少人
+            //找到排在该用户前面的用户数;
+            int g = 0, UseridInSalaryIncomeDict;
+            do
+            {
+                UseridInSalaryIncomeDict = users_income.Keys.ElementAt(g);
+                g++;
+            } while (UseridInSalaryIncomeDict != int.Parse(userid));
+            var salary_income_ratio = (float)Math.Round(g / UserCount, 3);
+
+            //构造DTO对象
+            var Stat = new BillStatisticsDTO(income_avg, expense_avg, income_median, expense_median, income_ratio, expense_ratio, invest_income_ratio, salary_income_ratio);
+            return Stat;
         }
 
         private bool UserBillExists(int id)

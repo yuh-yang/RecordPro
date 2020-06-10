@@ -144,6 +144,88 @@ namespace RecordPRO.Controllers
             return StatusCode(200);
         }
 
+
+        /// <summary>
+        /// 用户群体统计数据
+        /// </summary>
+        /// <returns>情感比例/平均情感/情感众数/平均字数/最少字数及其内容/3个高频词</returns>
+        /// <param name="token"></param>
+        /// <param name="period">统计周期，week或month</param>
+        [HttpGet("statistics")]
+        public ActionResult<NoteStatisticsDTO> Analyze(string token, string period)
+        {
+            //鉴权
+            var userid = _utils.VerifyRequest(token);
+            if (userid is null)
+            {
+                return StatusCode(403);
+            }
+            //计算时间周期
+            DateTime TimePeriod;
+            if ("month".Equals(period))
+            {
+                TimePeriod = DateTime.Now.AddDays(-30);
+            }
+            else
+            {
+                TimePeriod = DateTime.Now.AddDays(-7);
+            }
+            //基数据
+            var BaseData = _context.UserNote
+                .Where(b => b.dateTime > TimePeriod);
+            float BaseDataCount = BaseData.Count();
+            //计算情感比例
+            var negative_ratio = (float)Math.Round(BaseData.Where(b => b.sentiment == 0).Count() / BaseDataCount, 2);
+            var neutral_ratio = (float)Math.Round(BaseData.Where(b => b.sentiment == 1).Count() / BaseDataCount, 2);
+            var positive_ratio = (float)Math.Round(BaseData.Where(b => b.sentiment == 2).Count() / BaseDataCount, 2);
+            //计算平均情感
+            int[] SentimentArray = BaseData.Select(s => s.sentiment).ToArray();
+            int SentimentSum = 0;
+            foreach (int i in SentimentArray)
+            {
+                SentimentSum += i;
+            }
+            float sentiment_mean = (float)Math.Round(SentimentSum / (float)SentimentArray.Length, 2);
+            //计算情感众数
+            var MostPresentTimes = SentimentArray.Distinct().Max(i => SentimentArray.Count(j => j == i));
+            var MostPresent = SentimentArray.Distinct().Where(i => SentimentArray.Count(j => j == i) == MostPresentTimes).First();
+            var sentiment_mode = new { sentiment = MostPresent, times = MostPresentTimes };
+            //计算平均字数
+            int[] WordCountArray = BaseData.Select(s => s.wordcount).ToArray();
+            int WordSum = 0;
+            foreach (int i in WordCountArray)
+            {
+                WordSum += i;
+            }
+            int wordcount_mean = WordSum / WordCountArray.Length;
+            //求出最小字数及其内容
+            var NoteWithLeastWord = BaseData.Where(s=>s.wordcount==BaseData.Min(s=>s.wordcount)).First();
+            var wordcount_least = new { content = NoteWithLeastWord.content, wordcount = NoteWithLeastWord.wordcount };
+            //找出3个高频关键词
+            var keywords_list_orig = BaseData.Select(s => s.tags).ToList();
+            var keyword_list = new List<string>();
+            //字符串解包
+            foreach(string s in keywords_list_orig)
+            {
+                var temps = s.Split('/');
+                foreach(string st in temps)
+                {
+                    if (!(st.Equals("")))
+                    {
+                        keyword_list.Add(st);
+                    }
+                }
+            }
+            //使用LINQ查询
+            //按次数分组
+            var query = keyword_list.GroupBy(x => x)
+                        .OrderByDescending(g=>g.Count())
+                        .Select(g => new { g.Key,Count=g.Count()})
+                        .ToList();
+            var topthree = query.Take(3).ToList();
+            return new NoteStatisticsDTO(negative_ratio, positive_ratio, neutral_ratio, sentiment_mean, sentiment_mode, wordcount_mean, wordcount_least, topthree);
+        }
+
         private bool UserNoteExists(int id)
         {
             return _context.UserNote.Any(e => e.id == id);

@@ -10,5 +10,7 @@ namespace RecordPRO.Utils
     {
         public string VerifyRequest(string token);
         public Baidu.Aip.Nlp.Nlp GetBaiduClient();
+
+        public float Median(float[] arr);
     }
 }

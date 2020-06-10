@@ -41,7 +41,7 @@ namespace RecordPRO
             //注册Swagger服务
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Record Pro API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Record Pro API", Version = "v1", Description = "测试用户：\n yyh / ezio0124 / eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJSZWNvcmRQcm9BUEkiLCJpYXQiOiIyMDIwLzUvMjIgMjE6NDc6MjgiLCJuYW1lIjoieXloIiwiaWQiOjE4fQ.3ExJ8FmtYVRB1S3M9aPcVYq1tmiuVKpe1CYXeske_oI", });
                 //c.OperationFilter<CustomHeaderSwaggerAttribute>();
                 // Set the comments path for the Swagger JSON and UI.
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -68,14 +68,11 @@ namespace RecordPRO
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
 
-            //正式上线时注释掉下面这行
-            app.UseDeveloperExceptionPage();
 
-            //正式上线时取消以下多行注释
-/*            if (env.IsDevelopment())
+            if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-            }*/
+            }
 
             //app.UseHttpsRedirection();
 
