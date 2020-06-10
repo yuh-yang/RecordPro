@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace RecordPRO.DTO
 {
+    /// <summary>
+    /// 小记通信参数
+    /// </summary>
     public class UserNoteDTO
     {
         /// <summary>

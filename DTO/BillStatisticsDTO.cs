@@ -5,8 +5,12 @@ using System.Threading.Tasks;
 
 namespace RecordPRO.DTO
 {
+    /// <summary>
+    /// 账单统计参数
+    /// </summary>
     public class BillStatisticsDTO
     {
+
         public BillStatisticsDTO(float avg_income, float avg_expense, float med_income, float med_expense, float income_ratio, float expense_ratio, float invest_income_ratio, float salary_income_ratio)
         {
             this.avg_income = avg_income;

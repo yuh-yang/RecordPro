@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace RecordPRO.DTO
 {
+
     public class UserArticleDTO
     {
         /// <summary>

@@ -41,7 +41,7 @@ namespace RecordPRO
             //注册Swagger服务
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Record Pro API", Version = "v1", Description = "测试用户：\n yyh / ezio0124 / eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJSZWNvcmRQcm9BUEkiLCJpYXQiOiIyMDIwLzUvMjIgMjE6NDc6MjgiLCJuYW1lIjoieXloIiwiaWQiOjE4fQ.3ExJ8FmtYVRB1S3M9aPcVYq1tmiuVKpe1CYXeske_oI", });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Record Pro API", Version = "v1", Description = "A RESTful API for RecordPro,                  Token For Testing:                      eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJSZWNvcmRQcm9BUEkiLCJpYXQiOiIyMDIwLzUvMjIgMjE6NDc6MjgiLCJuYW1lIjoieXloIiwiaWQiOjE4fQ.3ExJ8FmtYVRB1S3M9aPcVYq1tmiuVKpe1CYXeske_oI", Contact = new OpenApiContact { Name = "Contact Us On GitHub", Url = new Uri("https://github.com/StevenEzio/RecordPro") } });
                 //c.OperationFilter<CustomHeaderSwaggerAttribute>();
                 // Set the comments path for the Swagger JSON and UI.
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";

@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace RecordPRO.DTO
 {
+    /// <summary>
+    /// 账单通信参数
+    /// </summary>
     public class UserBillDTO
     {
         /// <summary>
