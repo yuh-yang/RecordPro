@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using RecordPRO.Models;
 using RecordPRO.Services;
 using RecordPRO.Utils;
+using RecordPRO.DTO;
 
 namespace RecordPRO.Controllers
 {
@@ -81,7 +82,7 @@ namespace RecordPRO.Controllers
             var data = res["faces"][0];
             //判断笑脸
             int smile;
-            if (float.Parse(data["attributes"]["smile"]["threshold"].ToString()) < float.Parse(data["attributes"]["smile"]["threshold"].ToString()))
+            if (float.Parse(data["attributes"]["smile"]["threshold"].ToString()) <= float.Parse(data["attributes"]["smile"]["value"].ToString()))
             {
                 smile = 1;
             }
@@ -162,6 +163,156 @@ namespace RecordPRO.Controllers
             return userFace;
         }
 
+
+        /// <summary>
+        /// 用户群体统计数据
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="period">时间周期，week或month</param>
+        /// <param name="gender">性别，男1女0</param>
+        /// <returns>颜值所处比例/记录频率/笑容比率/出现最多的三个情绪/黑眼圈比率/皮肤健康比率</returns>
+        [HttpGet("statistics")]
+        public ActionResult<FaceStatisticsDTO> Analyze(string token, string period, int gender)
+        {
+            //鉴权
+            var userid = _utils.VerifyRequest(token);
+            if (userid is null)
+            {
+                return StatusCode(403);
+            }
+            //计算时间周期
+            DateTime TimePeriod;
+            if ("month".Equals(period))
+            {
+                TimePeriod = DateTime.Now.AddDays(-30);
+            }
+            else
+            {
+                TimePeriod = DateTime.Now.AddDays(-7);
+            }
+            //实例化DTO
+            var DTO = new FaceStatisticsDTO();
+            //基数据
+            var BaseData = _context.UserFace
+                .Where(b => b.datetime > TimePeriod && b.gender==gender);
+            float BaseDataCount = BaseData.Count();
+            var CurrentUser = BaseData
+                .Where(s => s.userid == int.Parse(userid))
+                .OrderByDescending(s=>s.datetime)
+                .First();
+            //颜值所占比例
+            var users_beauty_orig = BaseData.Select(s => s.beauty).ToList();
+            List<float> users_beauty = new List<float>();
+            foreach(string s in users_beauty_orig)
+            {
+                float beauty_sum=0;
+                foreach(string k in s.Split('/'))
+                {
+                    beauty_sum += float.Parse(k);
+                }
+                users_beauty.Add(beauty_sum / 2);
+            }
+            //降序排序
+            users_beauty.Sort((x, y) => -x.CompareTo(y));
+            var current_user_beauty_orig = CurrentUser.beauty;
+            float current_user_beauty = 0;
+            foreach(string f in current_user_beauty_orig.Split('/'))
+            {
+                current_user_beauty += float.Parse(f) / 2 ;
+            }
+            //计算处于该用户前方的颜值个数
+            int user_index = 0;
+            foreach(var item in users_beauty)
+            {
+                if (item <= current_user_beauty)
+                {
+                    user_index = users_beauty.IndexOf(item);
+                    break;
+                }
+            }
+            DTO.beauty_ratio = user_index / BaseDataCount;
+            //记录频率
+            if (period.Equals("month"))
+            {
+                DTO.record_frequency = BaseDataCount / 30;
+            }
+            else
+            {
+                DTO.record_frequency = BaseDataCount / 7;
+            }
+            //笑容比率
+            DTO.smile_ratio = BaseData.Where(s => s.smile == 1).Count() / BaseDataCount;
+            //最常出现的三种情绪
+            var emotion_list_orig = BaseData.Select(s => s.emotion).ToList();
+            var emotion_list = new List<string>();
+            //字符串解包，格式化
+            foreach(string s in emotion_list_orig)
+            {
+                var temps = s.Split('/');
+                foreach(string v in temps)
+                {
+                    emotion_list.Add(v.Split(":")[0]);
+                }
+            }
+            //使用LINQ查询
+            //按次数分组
+            var query = emotion_list.GroupBy(x => x)
+            .OrderByDescending(g => g.Count())
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToList();
+            DTO.emotion_mode = query.Take(3).ToList();
+            //黑眼圈与皮肤健康比率
+            var skin_status_orig = BaseData.Select(s => s.skinstatus).ToList();
+            var black_eye_list = new List<float>();
+            var health_list = new List<float>();
+            foreach(string s in skin_status_orig)
+            {
+                black_eye_list.Add(float.Parse(s.Split("/")[3]));
+                health_list.Add(float.Parse(s.Split("/")[0]));
+            }
+            //线性归一化处理
+            for(int i=0;i<black_eye_list.Count();i++)
+            {
+                black_eye_list[i] = (black_eye_list[i] - black_eye_list.Min()) / (black_eye_list.Max() - black_eye_list.Min());
+            }
+            for(int i = 0; i < health_list.Count(); i++)
+            {
+                health_list[i] = (health_list[i] - health_list.Min()) / (health_list.Max() - health_list.Min());
+            }
+            //健康度分级
+            DTO.skin_health_ratio = new
+            {
+                healthy = new
+                {
+                    ratio = (float)health_list.Count(x => x >= 0.7) / health_list.Count()
+                },
+                basically_healthy = new
+                {
+                    ratio = (float)health_list.Count(x => x >= 0.3 && x < 0.7) / health_list.Count()
+                },
+                unhealthy = new
+                {
+                    ratio = (float)health_list.Count(x => x < 0.3) / health_list.Count()
+                }
+            };
+            DTO.black_eye_ratio = new
+            {
+                healthy = new
+                {
+                    ratio = (float)black_eye_list.Count(x => x >= 0.7) / black_eye_list.Count()
+                },
+                basically_healthy = new
+                {
+                    ratio = (float)black_eye_list.Count(x => x >= 0.3 && x < 0.7) / black_eye_list.Count()
+                },
+                unhealthy = new
+                {
+                    ratio = (float)black_eye_list.Count(x => x < 0.3) / black_eye_list.Count()
+                }
+            };
+
+            return DTO;
+        }
         private bool UserFaceExists(int id)
         {
             return _context.UserFace.Any(e => e.id == id);
