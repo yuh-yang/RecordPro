@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RecordPRO.Models;
 
 namespace RecordPRO.Migrations
 {
     [DbContext(typeof(RecordPROContext))]
-    partial class RecordPROContextModelSnapshot : ModelSnapshot
+    [Migration("20200616084633_usermemorial")]
+    partial class usermemorial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,41 +66,6 @@ namespace RecordPRO.Migrations
                     b.HasKey("id");
 
                     b.ToTable("UserBill");
-                });
-
-            modelBuilder.Entity("RecordPRO.Models.UserBody", b =>
-                {
-                    b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<float>("bust")
-                        .HasColumnType("float");
-
-                    b.Property<DateTime>("dateTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<float>("height")
-                        .HasColumnType("float");
-
-                    b.Property<float>("hips")
-                        .HasColumnType("float");
-
-                    b.Property<float>("shoulder")
-                        .HasColumnType("float");
-
-                    b.Property<int>("userid")
-                        .HasColumnType("int");
-
-                    b.Property<float>("waist")
-                        .HasColumnType("float");
-
-                    b.Property<float>("weight")
-                        .HasColumnType("float");
-
-                    b.HasKey("id");
-
-                    b.ToTable("UserBody");
                 });
 
             modelBuilder.Entity("RecordPRO.Models.UserFace", b =>
